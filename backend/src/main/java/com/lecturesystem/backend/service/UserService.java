@@ -6,6 +6,7 @@ import com.lecturesystem.backend.dto.UserResponse;
 import com.lecturesystem.backend.model.User;
 import com.lecturesystem.backend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,16 +16,18 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public UserResponse create(CreateUserRequest req) {
         User user = new User();
         user.setFullName(req.fullName());
         user.setEmail(req.email());
-        user.setPassword(req.password()); // plain text — BCrypt hashing added in Phase 2
+        user.setPassword(passwordEncoder.encode(req.password()));
         user.setRole(req.role());
         return toResponse(userRepository.save(user));
     }
