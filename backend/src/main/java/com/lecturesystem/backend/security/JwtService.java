@@ -75,6 +75,12 @@ public class JwtService {
         return parseClaims(token).getSubject();
     }
 
+    // Reads the custom "role" claim we wrote in generateToken().
+    // Returns the raw string e.g. "LECTURER" or "STUDENT".
+    public String extractRole(String token) {
+        return (String) parseClaims(token).get("role");
+    }
+
     // Returns false for expired, tampered, or malformed tokens instead of
     // propagating the exception to callers.
     public boolean isTokenValid(String token) {
