@@ -2,6 +2,7 @@ package com.lecturesystem.backend.config;
 
 import com.lecturesystem.backend.security.JwtAuthenticationFilter;
 import com.lecturesystem.backend.security.JwtService;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,9 +44,13 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
-                // Login endpoint must be reachable without a token.
-                // The ** wildcard covers /api/auth/login and any future
-                // endpoints we add under /api/auth (e.g. /api/auth/refresh).
+                // Let the servlet container's ERROR dispatch reach /error freely.
+                // Without this, any unhandled exception on a public endpoint would
+                // be intercepted by the AuthenticationEntryPoint and return 401,
+                // masking the real error status.
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+
+                // Login/signup endpoints must be reachable without a token.
                 .requestMatchers("/api/auth/**").permitAll()
 
                 // Everything else requires a valid, authenticated request.
