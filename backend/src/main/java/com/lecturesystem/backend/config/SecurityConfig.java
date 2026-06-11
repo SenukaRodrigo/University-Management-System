@@ -6,6 +6,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -53,8 +54,33 @@ public class SecurityConfig {
                 // Login/signup endpoints must be reachable without a token.
                 .requestMatchers("/api/auth/**").permitAll()
 
+                // Enrollment requests nested under lectures. These MUST come
+                // before the general /api/lectures/** rules: matchers are
+                // evaluated top-down and the first match wins, so if the
+                // broad POST /api/lectures/** -> LECTURER rule ran first, a
+                // student's POST /api/lectures/5/requests would be rejected
+                // before this rule was ever consulted. ("*" matches exactly
+                // one path segment — the lecture id.)
+                .requestMatchers(HttpMethod.POST, "/api/lectures/*/requests").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.GET,  "/api/lectures/*/requests").hasRole("LECTURER")
+
+                // Lectures: rules are evaluated top-down, first match wins.
+                // Writes are lecturer-only; reads need any valid token.
+                // hasRole("LECTURER") matches the "ROLE_LECTURER" authority
+                // that the JWT filter put in the SecurityContext.
+                .requestMatchers(HttpMethod.POST,   "/api/lectures/**").hasRole("LECTURER")
+                .requestMatchers(HttpMethod.PUT,    "/api/lectures/**").hasRole("LECTURER")
+                .requestMatchers(HttpMethod.DELETE, "/api/lectures/**").hasRole("LECTURER")
+                .requestMatchers(HttpMethod.GET,    "/api/lectures/**").authenticated()
+
+                // Top-level request routes. Reads are open to both roles
+                // (students check /mine, lecturers check /incoming); only a
+                // lecturer can decide (PUT). WHICH lecturer is the service's
+                // ownership check, not a concern of these role rules.
+                .requestMatchers(HttpMethod.GET, "/api/requests/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/requests/**").hasRole("LECTURER")
+
                 // Everything else requires a valid, authenticated request.
-                // No role rules yet — those come in Phases 3 & 4.
                 .anyRequest().authenticated()
             )
 
