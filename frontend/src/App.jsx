@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import LecturerDashboard from './pages/LecturerDashboard'
+import StudentDashboard from './pages/StudentDashboard'
 
 // Redirects / to the right dashboard (or /login if not authenticated).
 function RootRedirect() {
@@ -25,10 +26,7 @@ function AppRoutes() {
       } />
       <Route path="/student" element={
         <ProtectedRoute requiredRole="STUDENT">
-          <div style={{ maxWidth: 700, margin: '40px auto', fontFamily: 'sans-serif' }}>
-            <h1>Student Dashboard</h1>
-            <p>Coming soon.</p>
-          </div>
+          <StudentDashboard />
         </ProtectedRoute>
       } />
     </Routes>
