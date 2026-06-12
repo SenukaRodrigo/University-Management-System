@@ -1,30 +1,30 @@
-const STATUS_STYLE = {
-  PENDING:  { color: '#888',  label: 'Pending' },
-  ACCEPTED: { color: 'green', label: 'Accepted' },
-  REJECTED: { color: 'red',   label: 'Rejected' },
-}
+import { ClipboardList } from 'lucide-react'
+import Card from './ui/Card'
+import Badge from './ui/Badge'
+import Alert from './ui/Alert'
+import { LoadingState, EmptyState } from './ui/Spinner'
 
 export default function MyRequests({ requests, loading, error }) {
   return (
-    <section>
-      <h2>My Requests</h2>
+    <section aria-labelledby="my-requests-heading">
+      <h2 id="my-requests-heading" className="mb-4 text-xl font-semibold text-slate-800">
+        My Requests
+      </h2>
 
-      {loading && <p>Loading…</p>}
-      {error   && <p style={{ color: 'red' }}>{error}</p>}
-      {!loading && requests.length === 0 && <p>No requests yet.</p>}
+      {loading && <LoadingState message="Loading your requests…" />}
+      {!loading && error && <Alert>{error}</Alert>}
+      {!loading && !error && requests.length === 0 && (
+        <EmptyState icon={ClipboardList} message="You haven't requested any lectures yet." />
+      )}
 
-      {requests.map(req => {
-        const { color, label } = STATUS_STYLE[req.status] ?? { color: '#888', label: req.status }
-        return (
-          <div key={req.id}
-            style={{ border: '1px solid #ccc', padding: 12, marginBottom: 8, borderRadius: 4 }}>
-            <strong>{req.lectureTitle}</strong>
-            <div style={{ marginTop: 4, color }}>
-              {label}
-            </div>
-          </div>
-        )
-      })}
+      <div className="space-y-3">
+        {requests.map(req => (
+          <Card key={req.id} className="flex items-center justify-between p-4">
+            <p className="text-sm font-semibold text-slate-900">{req.lectureTitle}</p>
+            <Badge status={req.status} />
+          </Card>
+        ))}
+      </div>
     </section>
   )
 }

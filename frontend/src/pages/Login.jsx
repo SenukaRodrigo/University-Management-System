@@ -1,48 +1,83 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import Button from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import Alert from '../components/ui/Alert'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate  = useNavigate()
   const [form, setForm]   = useState({ email: '', password: '' })
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+    setLoading(true)
     try {
       const { data } = await api.post('/auth/login', form)
       login(data.token, data.role, data.id)
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
       setError(err.response?.data?.message ?? 'Login failed')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto', fontFamily: 'sans-serif' }}>
-      <h2>Log in</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Email<br />
-            <input type="email" required value={form.email}
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
+      <div className="w-full max-w-sm">
+        {/* Brand mark */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-navy-700">
+            <GraduationCap className="h-6 w-6 text-white" aria-hidden="true" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">UniSystem</h1>
+          <p className="mt-1 text-sm text-slate-500">University Management System</p>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-card">
+          <h2 className="mb-6 text-xl font-semibold text-slate-900">Log in to your account</h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <Input
+              label="Email address"
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
-              style={{ width: '100%', padding: 8 }} />
-          </label>
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Password<br />
-            <input type="password" required value={form.password}
+            />
+            <Input
+              label="Password"
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={form.password}
               onChange={e => setForm({ ...form, password: e.target.value })}
-              style={{ width: '100%', padding: 8 }} />
-          </label>
+            />
+            {error && <Alert>{error}</Alert>}
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? 'Logging in…' : 'Log in'}
+            </Button>
+          </form>
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" style={{ width: '100%', padding: 10 }}>Log in</button>
-      </form>
-      <p>No account? <Link to="/signup">Sign up</Link></p>
+
+        <p className="mt-4 text-center text-sm text-slate-500">
+          No account?{' '}
+          <Link to="/signup" className="font-medium text-navy-700 hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

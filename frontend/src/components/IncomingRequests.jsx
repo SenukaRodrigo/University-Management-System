@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Inbox, Check, X } from 'lucide-react'
 import api from '../api/axios'
-
-const STATUS_COLORS = {
-  PENDING:  '#888',
-  ACCEPTED: 'green',
-  REJECTED: 'red',
-}
+import Button from './ui/Button'
+import Card from './ui/Card'
+import Badge from './ui/Badge'
+import Alert from './ui/Alert'
+import { LoadingState, EmptyState } from './ui/Spinner'
 
 export default function IncomingRequests() {
   const [requests, setRequests] = useState([])
@@ -32,39 +32,67 @@ export default function IncomingRequests() {
       await api.put(`/requests/${id}`, { status })
       fetchRequests()
     } catch {
-      alert(`Failed to update request`)
+      alert('Failed to update request')
     }
   }
 
   return (
-    <section>
-      <h2>Incoming Requests</h2>
+    <section aria-labelledby="incoming-heading">
+      <h2 id="incoming-heading" className="mb-4 text-xl font-semibold text-slate-800">
+        Incoming Requests
+      </h2>
 
-      {loading && <p>Loading…</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {!loading && requests.length === 0 && <p>No pending requests.</p>}
+      {loading && <LoadingState message="Loading requests…" />}
+      {!loading && error && <Alert>{error}</Alert>}
+      {!loading && !error && requests.length === 0 && (
+        <EmptyState icon={Inbox} message="No incoming requests yet." />
+      )}
 
-      {requests.map(req => (
-        <div key={req.id} style={{ border: '1px solid #ccc', padding: 12, marginBottom: 8, borderRadius: 4 }}>
-          <div>
-            <strong>{req.studentName}</strong> wants to join <strong>{req.lectureTitle}</strong>
-          </div>
-          <div style={{ marginTop: 4, color: STATUS_COLORS[req.status] ?? '#888' }}>
-            Status: {req.status}
-          </div>
-          {req.status === 'PENDING' && (
-            <div style={{ marginTop: 8 }}>
-              <button onClick={() => handleStatusChange(req.id, 'ACCEPTED')}
-                style={{ marginRight: 8 }}>
-                Accept
-              </button>
-              <button onClick={() => handleStatusChange(req.id, 'REJECTED')}>
-                Reject
-              </button>
+      <div className="space-y-3">
+        {requests.map(req => (
+          <Card key={req.id} className="p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-900">
+                  {req.studentName}
+                </p>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  wants to join{' '}
+                  <span className="font-medium text-slate-700">{req.lectureTitle}</span>
+                </p>
+              </div>
+
+              {/* Status + actions */}
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge status={req.status} />
+                {req.status === 'PENDING' && (
+                  <>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleStatusChange(req.id, 'ACCEPTED')}
+                      aria-label={`Accept ${req.studentName}'s request`}
+                    >
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                      <span className="hidden sm:inline">Accept</span>
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleStatusChange(req.id, 'REJECTED')}
+                      aria-label={`Reject ${req.studentName}'s request`}
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                      <span className="hidden sm:inline">Reject</span>
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      ))}
+          </Card>
+        ))}
+      </div>
     </section>
   )
 }

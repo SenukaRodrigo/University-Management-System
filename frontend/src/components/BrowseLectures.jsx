@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { BookOpen, Check, Loader2 } from 'lucide-react'
 import api from '../api/axios'
+import Button from './ui/Button'
+import Card from './ui/Card'
+import Alert from './ui/Alert'
+import { LoadingState, EmptyState } from './ui/Spinner'
 
 export default function BrowseLectures({ myRequests, onRequestMade }) {
   const [lectures, setLectures] = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(null)
-  // Tracks lecture IDs where a POST is in-flight.
-  const [pending, setPending] = useState({})
+  const [pending, setPending]   = useState({})   // { [lectureId]: true } while POST is in-flight
 
   useEffect(() => {
     api.get('/lectures')
@@ -15,7 +19,6 @@ export default function BrowseLectures({ myRequests, onRequestMade }) {
       .finally(() => setLoading(false))
   }, [])
 
-  // Derived from the parent's up-to-date request list — stays in sync after every refresh.
   const requestedIds = useMemo(
     () => new Set(myRequests.map(r => r.lectureId)),
     [myRequests]
@@ -25,12 +28,10 @@ export default function BrowseLectures({ myRequests, onRequestMade }) {
     setPending(p => ({ ...p, [lectureId]: true }))
     try {
       await api.post(`/lectures/${lectureId}/requests`)
-      // Refresh the parent's request list; the button state follows from that.
       onRequestMade()
     } catch (err) {
       if (err.response?.status === 409) {
-        // Already requested (e.g. stale list or concurrent click) — sync the list
-        // silently rather than showing an error.
+        // Already requested — sync silently, no error shown
         onRequestMade()
       } else {
         alert(err.response?.data?.message ?? 'Failed to send request')
@@ -40,38 +41,69 @@ export default function BrowseLectures({ myRequests, onRequestMade }) {
     }
   }, [onRequestMade])
 
-  if (loading) return <p>Loading lectures…</p>
-  if (error)   return <p style={{ color: 'red' }}>{error}</p>
+  if (loading) return <LoadingState message="Loading available lectures…" />
+  if (error)   return <Alert>{error}</Alert>
 
   return (
-    <section style={{ marginBottom: 40 }}>
-      <h2>Browse Lectures</h2>
+    <section aria-labelledby="browse-heading">
+      <h2 id="browse-heading" className="mb-4 text-xl font-semibold text-slate-800">
+        Browse Lectures
+      </h2>
 
-      {lectures.length === 0 && <p>No lectures available yet.</p>}
+      {lectures.length === 0 && (
+        <EmptyState icon={BookOpen} message="No lectures are available yet." />
+      )}
 
-      {lectures.map(lecture => {
-        const isRequested = requestedIds.has(lecture.id)
-        const isInFlight  = pending[lecture.id]
+      {/* Responsive grid: 1 col → 2 col on sm → 3 col on lg */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {lectures.map(lecture => {
+          const isRequested = requestedIds.has(lecture.id)
+          const isInFlight  = pending[lecture.id]
 
-        return (
-          <div key={lecture.id}
-            style={{ border: '1px solid #ccc', padding: 12, marginBottom: 8, borderRadius: 4 }}>
-            <strong>{lecture.title}</strong>
-            <div style={{ fontSize: '0.85em', color: '#555', marginBottom: 4 }}>
-              Lecturer: {lecture.lecturerName}
-            </div>
-            {lecture.description && (
-              <p style={{ margin: '4px 0 8px' }}>{lecture.description}</p>
-            )}
-            <button
-              disabled={isRequested || isInFlight}
-              onClick={() => handleRequest(lecture.id)}
-            >
-              {isInFlight ? 'Requesting…' : isRequested ? 'Requested' : 'Request'}
-            </button>
-          </div>
-        )
-      })}
+          return (
+            <Card key={lecture.id} className="flex flex-col p-5">
+              <div className="flex-1">
+                <p className="font-semibold text-slate-900">{lecture.title}</p>
+                <p className="mt-1 text-xs font-medium text-navy-600">
+                  {lecture.lecturerName}
+                </p>
+                {lecture.description && (
+                  <p className="mt-2 text-sm text-slate-500 line-clamp-3">
+                    {lecture.description}
+                  </p>
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  size="sm"
+                  variant={isRequested ? 'secondary' : 'primary'}
+                  disabled={isRequested || isInFlight}
+                  onClick={() => handleRequest(lecture.id)}
+                  aria-label={
+                    isRequested
+                      ? `Already requested ${lecture.title}`
+                      : `Request to join ${lecture.title}`
+                  }
+                >
+                  {isInFlight ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      Requesting…
+                    </>
+                  ) : isRequested ? (
+                    <>
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                      Requested
+                    </>
+                  ) : (
+                    'Request'
+                  )}
+                </Button>
+              </div>
+            </Card>
+          )
+        })}
+      </div>
     </section>
   )
 }
