@@ -6,11 +6,13 @@ import com.lecturesystem.backend.dto.UpdateLectureRequest;
 import com.lecturesystem.backend.exception.NotResourceOwnerException;
 import com.lecturesystem.backend.model.Lecture;
 import com.lecturesystem.backend.model.User;
+import com.lecturesystem.backend.repository.EnrollmentRequestRepository;
 import com.lecturesystem.backend.repository.LectureRepository;
 import com.lecturesystem.backend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -20,10 +22,14 @@ public class LectureService {
 
     private final LectureRepository lectureRepository;
     private final UserRepository userRepository;
+    private final EnrollmentRequestRepository enrollmentRequestRepository;
 
-    public LectureService(LectureRepository lectureRepository, UserRepository userRepository) {
+    public LectureService(LectureRepository lectureRepository,
+                          UserRepository userRepository,
+                          EnrollmentRequestRepository enrollmentRequestRepository) {
         this.lectureRepository = lectureRepository;
         this.userRepository = userRepository;
+        this.enrollmentRequestRepository = enrollmentRequestRepository;
     }
 
     public LectureResponse create(CreateLectureRequest req) {
@@ -60,9 +66,13 @@ public class LectureService {
         return toResponse(lectureRepository.save(lecture));
     }
 
+    @Transactional
     public void delete(Long id) {
         Lecture lecture = loadLecture(id);
         assertOwnedByCurrentUser(lecture);
+        // Remove child requests first so the FK constraint is not violated.
+        // Both deletes share this transaction — if either fails, both roll back.
+        enrollmentRequestRepository.deleteByLectureId(id);
         lectureRepository.delete(lecture);
     }
 

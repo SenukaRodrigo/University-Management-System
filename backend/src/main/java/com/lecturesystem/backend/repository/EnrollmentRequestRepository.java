@@ -16,4 +16,8 @@ public interface EnrollmentRequestRepository extends JpaRepository<EnrollmentReq
     List<EnrollmentRequest> findByLectureLecturerId(Long lecturerId);
 
     boolean existsByStudentIdAndLectureId(Long studentId, Long lectureId);
+
+    // One bulk DELETE rather than loading each row then deleting individually.
+    // Called before deleting a lecture so the FK constraint is not violated.
+    void deleteByLectureId(Long lectureId);
 }

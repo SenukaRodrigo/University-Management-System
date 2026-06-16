@@ -26,11 +26,23 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
-    // Catches DB-level unique constraint violations (e.g. race condition bypasses the service check).
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        // getMostSpecificCause() unwraps to the JDBC driver exception whose message
+        // is filled by the database. PostgreSQL always says "duplicate key" for a
+        // unique violation (23505) and "violates foreign key constraint" for an FK
+        // violation (23503). Checking the message text avoids importing
+        // driver-specific classes like PSQLException just to read the SQL state.
+        String rootMessage = ex.getMostSpecificCause().getMessage();
+        boolean isDuplicateKey = rootMessage != null
+                && (rootMessage.contains("duplicate key") || rootMessage.contains("unique constraint"));
+
+        String message = isDuplicateKey
+                ? "A record with the given data already exists"
+                : "The operation could not be completed due to a data constraint violation";
+
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", "A record with the given data already exists"));
+                .body(Map.of("message", message));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
