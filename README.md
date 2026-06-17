@@ -46,7 +46,7 @@ Make sure these are installed before you start:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/University-Management-System.git
+git clone https://github.com/SenukaRodrigo/University-Management-System.git
 cd University-Management-System
 ```
 
