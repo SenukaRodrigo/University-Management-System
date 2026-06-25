@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap } from 'lucide-react'
+import { toast } from 'sonner'
+import { GraduationCap, Loader2 } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
@@ -18,8 +19,16 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setLoading(true)
+
+    const loginPromise = api.post('/auth/login', form)
+    toast.promise(loginPromise, {
+      loading: 'Logging in…',
+      success: 'Welcome back!',
+      error: 'Invalid email or password.',
+    })
+
     try {
-      const { data } = await api.post('/auth/login', form)
+      const { data } = await loginPromise
       login(data.token, data.role, data.id)
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
@@ -66,7 +75,14 @@ export default function Login() {
             />
             {error && <Alert>{error}</Alert>}
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? 'Logging in…' : 'Log in'}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Logging in…
+                </>
+              ) : (
+                'Log in'
+              )}
             </Button>
           </form>
         </div>

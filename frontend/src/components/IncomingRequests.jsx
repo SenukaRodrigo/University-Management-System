@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 import { Inbox, Check, X } from 'lucide-react'
 import api from '../api/axios'
 import Button from './ui/Button'
@@ -6,6 +8,7 @@ import Card from './ui/Card'
 import Badge from './ui/Badge'
 import Alert from './ui/Alert'
 import { LoadingState, EmptyState } from './ui/Spinner'
+import { listContainer, listItem } from '../lib/motion'
 
 export default function IncomingRequests() {
   const [requests, setRequests] = useState([])
@@ -30,9 +33,10 @@ export default function IncomingRequests() {
   async function handleStatusChange(id, status) {
     try {
       await api.put(`/requests/${id}`, { status })
+      toast.success(status === 'ACCEPTED' ? 'Request accepted.' : 'Request rejected.')
       fetchRequests()
     } catch {
-      alert('Failed to update request')
+      toast.error('Failed to update request.')
     }
   }
 
@@ -48,9 +52,16 @@ export default function IncomingRequests() {
         <EmptyState icon={Inbox} message="No incoming requests yet." />
       )}
 
-      <div className="space-y-3">
-        {requests.map(req => (
-          <Card key={req.id} className="p-4">
+      <motion.div
+        className="space-y-3"
+        variants={listContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <AnimatePresence>
+          {requests.map(req => (
+            <motion.div key={req.id} variants={listItem} exit="exit" layout>
+          <Card className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {/* Info */}
               <div className="min-w-0 flex-1">
@@ -91,8 +102,10 @@ export default function IncomingRequests() {
               </div>
             </div>
           </Card>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
     </section>
   )
 }

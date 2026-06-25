@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion'
+
 const base =
   'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors ' +
   'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ' +
@@ -22,14 +24,24 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   className = '',
+  disabled,
   ...props
 }) {
+  // Subtle tactile feedback. Skipped while disabled so dead buttons stay still.
+  // Reduced-motion users get no scaling (handled globally by MotionConfig).
+  const motionProps = disabled
+    ? {}
+    : { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } }
+
   return (
-    <button
+    <motion.button
+      {...motionProps}
+      transition={{ duration: 0.15 }}
+      disabled={disabled}
       className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   )
 }

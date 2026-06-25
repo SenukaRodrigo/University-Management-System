@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap } from 'lucide-react'
+import { toast } from 'sonner'
+import { GraduationCap, Loader2 } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
@@ -21,9 +22,14 @@ export default function Signup() {
     try {
       const { data } = await api.post('/auth/signup', form)
       login(data.token, data.role, data.id)
+      toast.success('Account created — welcome!')
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Signup failed')
+      const message = err.response?.status === 409
+        ? 'That email is already registered.'
+        : err.response?.data?.message ?? 'Signup failed'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -83,7 +89,14 @@ export default function Signup() {
             </Select>
             {error && <Alert>{error}</Alert>}
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? 'Creating account…' : 'Sign up'}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Creating account…
+                </>
+              ) : (
+                'Sign up'
+              )}
             </Button>
           </form>
         </div>
