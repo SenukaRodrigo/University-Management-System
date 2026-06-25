@@ -82,13 +82,13 @@ export default function MyLectures() {
 
   return (
     <section aria-labelledby="my-lectures-heading">
-      <h2 id="my-lectures-heading" className="mb-4 text-xl font-semibold text-slate-800">
+      <h2 id="my-lectures-heading" className="mb-4 text-xl font-semibold text-slate-100">
         My Lectures
       </h2>
 
       {/* Create-lecture form */}
       <Card className="mb-6 p-5">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">
           New Lecture
         </h3>
         <form onSubmit={handleCreate} className="space-y-3">
@@ -164,9 +164,9 @@ export default function MyLectures() {
             ) : (
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-900">{lecture.title}</p>
+                  <p className="font-semibold text-slate-100">{lecture.title}</p>
                   {lecture.description && (
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                    <p className="mt-1 text-sm text-slate-400 line-clamp-2">
                       {lecture.description}
                     </p>
                   )}

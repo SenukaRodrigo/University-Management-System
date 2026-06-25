@@ -16,8 +16,8 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-navy-700 shadow-md">
+    <div className="min-h-screen bg-slate-950">
+      <header className="bg-navy-800 shadow-md">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between">
             {/* Brand */}
@@ -31,12 +31,12 @@ export default function Layout({ children }) {
             {/* User info + logout */}
             {auth && (
               <div className="flex items-center gap-3">
-                <span className="hidden rounded-full bg-navy-800 px-3 py-1 text-xs font-medium text-navy-200 sm:inline-block">
+                <span className="hidden rounded-full bg-navy-900 px-3 py-1 text-xs font-medium text-navy-200 sm:inline-block">
                   {ROLE_LABEL[auth.role] ?? auth.role}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-navy-100 transition-colors hover:bg-navy-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-navy-100 transition-colors hover:bg-navy-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   aria-label="Log out"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />

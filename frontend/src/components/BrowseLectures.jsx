@@ -51,7 +51,7 @@ export default function BrowseLectures({ myRequests, onRequestMade }) {
 
   return (
     <section aria-labelledby="browse-heading">
-      <h2 id="browse-heading" className="mb-4 text-xl font-semibold text-slate-800">
+      <h2 id="browse-heading" className="mb-4 text-xl font-semibold text-slate-100">
         Browse Lectures
       </h2>
 
@@ -79,12 +79,12 @@ export default function BrowseLectures({ myRequests, onRequestMade }) {
             >
             <Card className="flex h-full flex-col p-5">
               <div className="flex-1">
-                <p className="font-semibold text-slate-900">{lecture.title}</p>
-                <p className="mt-1 text-xs font-medium text-navy-600">
+                <p className="font-semibold text-slate-100">{lecture.title}</p>
+                <p className="mt-1 text-xs font-medium text-navy-300">
                   {lecture.lecturerName}
                 </p>
                 {lecture.description && (
-                  <p className="mt-2 text-sm text-slate-500 line-clamp-3">
+                  <p className="mt-2 text-sm text-slate-400 line-clamp-3">
                     {lecture.description}
                   </p>
                 )}

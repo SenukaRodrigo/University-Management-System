@@ -9,7 +9,7 @@ import { listContainer, listItem } from '../lib/motion'
 export default function MyRequests({ requests, loading, error }) {
   return (
     <section aria-labelledby="my-requests-heading">
-      <h2 id="my-requests-heading" className="mb-4 text-xl font-semibold text-slate-800">
+      <h2 id="my-requests-heading" className="mb-4 text-xl font-semibold text-slate-100">
         My Requests
       </h2>
 
@@ -29,7 +29,7 @@ export default function MyRequests({ requests, loading, error }) {
           {requests.map(req => (
             <motion.div key={req.id} variants={listItem} exit="exit" layout>
               <Card className="flex items-center justify-between p-4">
-                <p className="text-sm font-semibold text-slate-900">{req.lectureTitle}</p>
+                <p className="text-sm font-semibold text-slate-100">{req.lectureTitle}</p>
                 <Badge status={req.status} />
               </Card>
             </motion.div>

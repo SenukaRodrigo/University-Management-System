@@ -3,9 +3,9 @@ import { motion, useAnimationControls } from 'framer-motion'
 
 // Status badges live here — amber/green/red in one place so they're always consistent.
 const BADGE_STYLES = {
-  PENDING:  'bg-amber-50  text-amber-700  ring-amber-500/20',
-  ACCEPTED: 'bg-green-50  text-green-700  ring-green-500/20',
-  REJECTED: 'bg-red-50    text-red-700    ring-red-500/20',
+  PENDING:  'bg-amber-500/10  text-amber-400  ring-amber-500/30',
+  ACCEPTED: 'bg-green-500/10  text-green-400  ring-green-500/30',
+  REJECTED: 'bg-red-500/10    text-red-400    ring-red-500/30',
 }
 
 const BADGE_LABELS = {
@@ -15,7 +15,7 @@ const BADGE_LABELS = {
 }
 
 export default function Badge({ status }) {
-  const style = BADGE_STYLES[status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'
+  const style = BADGE_STYLES[status] ?? 'bg-slate-700/40 text-slate-300 ring-slate-600/30'
   const label = BADGE_LABELS[status] ?? status
 
   // Quick pop only when the status actually changes — not on first render, so a
