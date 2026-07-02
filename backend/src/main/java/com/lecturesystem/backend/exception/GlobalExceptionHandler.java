@@ -26,6 +26,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler(InvalidEmailDomainException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidEmailDomain(InvalidEmailDomainException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         // getMostSpecificCause() unwraps to the JDBC driver exception whose message

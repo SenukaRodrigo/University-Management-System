@@ -4,13 +4,13 @@ import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
-import { Input, Select } from '../components/ui/Input'
+import { Input } from '../components/ui/Input'
 import Alert from '../components/ui/Alert'
 
 export default function Signup() {
   const { login } = useAuth()
   const navigate  = useNavigate()
-  const [form, setForm]   = useState({ fullName: '', email: '', password: '', role: 'STUDENT' })
+  const [form, setForm]   = useState({ fullName: '', email: '', password: '' })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -54,15 +54,20 @@ export default function Signup() {
               value={form.fullName}
               onChange={e => setForm({ ...form, fullName: e.target.value })}
             />
-            <Input
-              label="Email address"
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={form.email}
-              onChange={e => setForm({ ...form, email: e.target.value })}
-            />
+            <div className="space-y-1">
+              <Input
+                label="Email address"
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={form.email}
+                onChange={e => setForm({ ...form, email: e.target.value })}
+              />
+              <p className="text-xs text-slate-400">
+                Use your university email — students: @students.uni.edu, lecturers: @uni.edu
+              </p>
+            </div>
             <Input
               label="Password"
               id="password"
@@ -72,15 +77,6 @@ export default function Signup() {
               value={form.password}
               onChange={e => setForm({ ...form, password: e.target.value })}
             />
-            <Select
-              label="I am a"
-              id="role"
-              value={form.role}
-              onChange={e => setForm({ ...form, role: e.target.value })}
-            >
-              <option value="STUDENT">Student</option>
-              <option value="LECTURER">Lecturer</option>
-            </Select>
             {error && <Alert>{error}</Alert>}
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading ? 'Creating account…' : 'Sign up'}

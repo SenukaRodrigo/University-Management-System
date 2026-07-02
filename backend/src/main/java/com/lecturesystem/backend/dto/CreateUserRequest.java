@@ -1,11 +1,11 @@
 package com.lecturesystem.backend.dto;
 
-import com.lecturesystem.backend.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+// No role here: the client never chooses it. The role is derived from the
+// email domain on the backend at signup (see EmailDomainService / AuthService).
 public record CreateUserRequest(
         @NotBlank(message = "Full name is required")
         String fullName,
@@ -16,8 +16,5 @@ public record CreateUserRequest(
 
         @NotBlank(message = "Password is required")
         @Size(min = 8, message = "Password must be at least 8 characters")
-        String password,
-
-        @NotNull(message = "Role is required (STUDENT or LECTURER)")
-        Role role
+        String password
 ) {}
