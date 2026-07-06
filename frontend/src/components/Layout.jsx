@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { GraduationCap, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -10,6 +11,7 @@ export default function Layout({ children }) {
 
   function handleLogout() {
     logout()
+    toast.success("You've been logged out.")
     navigate('/login')
   }
 

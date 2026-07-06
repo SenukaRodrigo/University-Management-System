@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
@@ -21,9 +22,16 @@ export default function Signup() {
     try {
       const { data } = await api.post('/auth/signup', form)
       login(data.token, data.role, data.id)
+      toast.success('Account created — welcome!')
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Signup failed')
+      // 409 = duplicate email; other 4xx (e.g. unrecognized email domain)
+      // surface the server's own message.
+      const message = err.response?.status === 409
+        ? 'That email is already registered.'
+        : err.response?.data?.message ?? 'Signup failed'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -78,7 +86,7 @@ export default function Signup() {
               onChange={e => setForm({ ...form, password: e.target.value })}
             />
             {error && <Alert>{error}</Alert>}
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            <Button type="submit" className="w-full" size="lg" loading={loading}>
               {loading ? 'Creating account…' : 'Sign up'}
             </Button>
           </form>
