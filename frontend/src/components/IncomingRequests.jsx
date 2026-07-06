@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 import { Inbox, Check, X } from 'lucide-react'
 import api from '../api/axios'
 import Button from './ui/Button'
@@ -6,6 +8,7 @@ import Card from './ui/Card'
 import Badge from './ui/Badge'
 import Alert from './ui/Alert'
 import { LoadingState, EmptyState } from './ui/Spinner'
+import { listContainer, listItem } from '../lib/motion'
 
 export default function IncomingRequests() {
   const [requests, setRequests] = useState([])
@@ -30,15 +33,16 @@ export default function IncomingRequests() {
   async function handleStatusChange(id, status) {
     try {
       await api.put(`/requests/${id}`, { status })
+      toast.success(status === 'ACCEPTED' ? 'Request accepted.' : 'Request rejected.')
       fetchRequests()
     } catch {
-      alert('Failed to update request')
+      toast.error('Failed to update request.')
     }
   }
 
   return (
     <section aria-labelledby="incoming-heading">
-      <h2 id="incoming-heading" className="mb-4 text-xl font-semibold text-slate-800">
+      <h2 id="incoming-heading" className="mb-4 text-xl font-semibold text-slate-100">
         Incoming Requests
       </h2>
 
@@ -48,18 +52,25 @@ export default function IncomingRequests() {
         <EmptyState icon={Inbox} message="No incoming requests yet." />
       )}
 
-      <div className="space-y-3">
-        {requests.map(req => (
-          <Card key={req.id} className="p-4">
+      <motion.div
+        className="space-y-3"
+        variants={listContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <AnimatePresence>
+          {requests.map(req => (
+            <motion.div key={req.id} variants={listItem} exit="exit" layout>
+          <Card className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {/* Info */}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-slate-100">
                   {req.studentName}
                 </p>
-                <p className="mt-0.5 text-sm text-slate-500">
+                <p className="mt-0.5 text-sm text-slate-400">
                   wants to join{' '}
-                  <span className="font-medium text-slate-700">{req.lectureTitle}</span>
+                  <span className="font-medium text-slate-300">{req.lectureTitle}</span>
                 </p>
               </div>
 
@@ -91,8 +102,10 @@ export default function IncomingRequests() {
               </div>
             </div>
           </Card>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
     </section>
   )
 }

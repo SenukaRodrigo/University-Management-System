@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { PlusCircle, Pencil, Trash2, BookOpen } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
+import { PlusCircle, Pencil, Trash2, BookOpen, Loader2 } from 'lucide-react'
 import api from '../api/axios'
 import Button from './ui/Button'
 import Card from './ui/Card'
 import { Input, Textarea } from './ui/Input'
 import Alert from './ui/Alert'
 import { LoadingState, EmptyState } from './ui/Spinner'
+import { listContainer, listItem } from '../lib/motion'
 
 export default function MyLectures() {
   const [lectures, setLectures]       = useState([])
@@ -41,6 +44,7 @@ export default function MyLectures() {
       await api.post('/lectures', { title: newTitle, description: newDesc })
       setNewTitle('')
       setNewDesc('')
+      toast.success('Lecture created.')
       fetchLectures()
     } catch (err) {
       setCreateError(err.response?.data?.message ?? 'Failed to create lecture')
@@ -58,6 +62,7 @@ export default function MyLectures() {
         description: editing.description,
       })
       setEditing(null)
+      toast.success('Lecture updated.')
       fetchLectures()
     } catch (err) {
       setEditError(err.response?.data?.message ?? 'Failed to update lecture')
@@ -68,21 +73,22 @@ export default function MyLectures() {
     if (!window.confirm('Delete this lecture?')) return
     try {
       await api.delete(`/lectures/${id}`)
+      toast.success('Lecture deleted.')
       fetchLectures()
     } catch {
-      alert('Failed to delete lecture')
+      toast.error('Failed to delete lecture.')
     }
   }
 
   return (
     <section aria-labelledby="my-lectures-heading">
-      <h2 id="my-lectures-heading" className="mb-4 text-xl font-semibold text-slate-800">
+      <h2 id="my-lectures-heading" className="mb-4 text-xl font-semibold text-slate-100">
         My Lectures
       </h2>
 
       {/* Create-lecture form */}
       <Card className="mb-6 p-5">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-400">
           New Lecture
         </h3>
         <form onSubmit={handleCreate} className="space-y-3">
@@ -105,7 +111,11 @@ export default function MyLectures() {
           {createError && <Alert>{createError}</Alert>}
           <div className="flex justify-end">
             <Button type="submit" disabled={creating}>
-              <PlusCircle className="h-4 w-4" aria-hidden="true" />
+              {creating ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <PlusCircle className="h-4 w-4" aria-hidden="true" />
+              )}
               {creating ? 'Creating…' : 'Create lecture'}
             </Button>
           </div>
@@ -119,9 +129,16 @@ export default function MyLectures() {
         <EmptyState icon={BookOpen} message="No lectures yet — create one above." />
       )}
 
-      <div className="space-y-3">
-        {lectures.map(lecture => (
-          <Card key={lecture.id} className="p-5">
+      <motion.div
+        className="space-y-3"
+        variants={listContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <AnimatePresence>
+          {lectures.map(lecture => (
+            <motion.div key={lecture.id} variants={listItem} exit="exit" layout>
+          <Card className="p-5">
             {editing?.id === lecture.id ? (
               <form onSubmit={handleUpdate} className="space-y-3">
                 <Input
@@ -147,9 +164,9 @@ export default function MyLectures() {
             ) : (
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-900">{lecture.title}</p>
+                  <p className="font-semibold text-slate-100">{lecture.title}</p>
                   {lecture.description && (
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                    <p className="mt-1 text-sm text-slate-400 line-clamp-2">
                       {lecture.description}
                     </p>
                   )}
@@ -183,8 +200,10 @@ export default function MyLectures() {
               </div>
             )}
           </Card>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
     </section>
   )
 }

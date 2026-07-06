@@ -2,11 +2,11 @@ import { AlertCircle, Info } from 'lucide-react'
 
 const STYLES = {
   error: {
-    wrap: 'bg-red-50 border-red-200 text-red-700',
+    wrap: 'bg-red-500/10 border-red-500/30 text-red-300',
     Icon: AlertCircle,
   },
   info: {
-    wrap: 'bg-blue-50 border-blue-200 text-blue-700',
+    wrap: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
     Icon: Info,
   },
 }

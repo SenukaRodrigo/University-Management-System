@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { GraduationCap } from 'lucide-react'
+import { toast } from 'sonner'
+import { GraduationCap, Loader2 } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
@@ -21,29 +22,34 @@ export default function Signup() {
     try {
       const { data } = await api.post('/auth/signup', form)
       login(data.token, data.role, data.id)
+      toast.success('Account created — welcome!')
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Signup failed')
+      const message = err.response?.status === 409
+        ? 'That email is already registered.'
+        : err.response?.data?.message ?? 'Signup failed'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12">
       <div className="w-full max-w-sm">
         {/* Brand mark */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-navy-700">
             <GraduationCap className="h-6 w-6 text-white" aria-hidden="true" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">UniSystem</h1>
-          <p className="mt-1 text-sm text-slate-500">University Management System</p>
+          <h1 className="text-2xl font-bold text-slate-100">UniSystem</h1>
+          <p className="mt-1 text-sm text-slate-400">University Management System</p>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-card">
-          <h2 className="mb-6 text-xl font-semibold text-slate-900">Create your account</h2>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-card">
+          <h2 className="mb-6 text-xl font-semibold text-slate-100">Create your account</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <Input
@@ -79,14 +85,21 @@ export default function Signup() {
             />
             {error && <Alert>{error}</Alert>}
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? 'Creating account…' : 'Sign up'}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Creating account…
+                </>
+              ) : (
+                'Sign up'
+              )}
             </Button>
           </form>
         </div>
 
-        <p className="mt-4 text-center text-sm text-slate-500">
+        <p className="mt-4 text-center text-sm text-slate-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-navy-700 hover:underline">
+          <Link to="/login" className="font-medium text-navy-300 hover:underline">
             Log in
           </Link>
         </p>

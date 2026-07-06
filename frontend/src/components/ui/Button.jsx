@@ -1,14 +1,16 @@
+import { motion } from 'framer-motion'
+
 const base =
   'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors ' +
   'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ' +
   'disabled:opacity-50 disabled:cursor-not-allowed'
 
 const variants = {
-  primary: 'bg-navy-700 text-white hover:bg-navy-800 focus-visible:ring-navy-700',
+  primary: 'bg-navy-600 text-white hover:bg-navy-500 focus-visible:ring-navy-500',
   secondary:
-    'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600',
-  ghost: 'text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-400',
+    'border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 focus-visible:ring-slate-500',
+  danger: 'bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500',
+  ghost: 'text-slate-300 hover:bg-slate-800 focus-visible:ring-slate-500',
 }
 
 const sizes = {
@@ -22,14 +24,24 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   className = '',
+  disabled,
   ...props
 }) {
+  // Subtle tactile feedback. Skipped while disabled so dead buttons stay still.
+  // Reduced-motion users get no scaling (handled globally by MotionConfig).
+  const motionProps = disabled
+    ? {}
+    : { whileHover: { scale: 1.02 }, whileTap: { scale: 0.97 } }
+
   return (
-    <button
+    <motion.button
+      {...motionProps}
+      transition={{ duration: 0.15 }}
+      disabled={disabled}
       className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   )
 }

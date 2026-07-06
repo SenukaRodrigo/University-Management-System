@@ -12,10 +12,26 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Tell the browser this is a dark UI: native selects, scrollbars and
+       autofill render dark, and there's no white flash before CSS loads. */
+    color-scheme: dark;
+  }
+
+  /* Dark theme baseline so any uncovered area (overscroll, etc.) stays dark */
+  body {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  /* Focus rings sit on dark surfaces, so the offset gap must be dark too —
+     otherwise every focused control shows a white halo. */
+  *,
+  ::before,
+  ::after {
+    --tw-ring-offset-color: theme(colors.slate.900);
   }
 
   /* Ensure focus outlines only appear for keyboard nav, not mouse clicks */
   :focus-visible {
-    @apply outline-none ring-2 ring-navy-700 ring-offset-2;
+    @apply outline-none ring-2 ring-navy-400 ring-offset-2;
   }
 }
