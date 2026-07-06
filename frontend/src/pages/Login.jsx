@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { GraduationCap, Loader2 } from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
@@ -74,15 +74,8 @@ export default function Login() {
               onChange={e => setForm({ ...form, password: e.target.value })}
             />
             {error && <Alert>{error}</Alert>}
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  Logging in…
-                </>
-              ) : (
-                'Log in'
-              )}
+            <Button type="submit" className="w-full" size="lg" loading={loading}>
+              {loading ? 'Logging in…' : 'Log in'}
             </Button>
           </form>
         </div>

@@ -12,8 +12,11 @@ api.interceptors.request.use(config => {
   return config
 })
 
-// Global error handling. Login/signup own their own messaging (a bad login is
-// a 401 we don't want reported as "session expired"), so we skip /auth/* here.
+// Global error handling.
+//  - /auth/* requests own their messaging (a bad login is a 401 we don't want
+//    reported as "session expired"), so they're skipped entirely.
+//  - List loads pass { skipErrorToast: true } because they render an inline
+//    ErrorState with a Retry button instead — a toast on top would be noise.
 api.interceptors.response.use(
   response => response,
   error => {
@@ -30,7 +33,7 @@ api.interceptors.response.use(
         if (window.location.pathname !== '/login') {
           window.location.assign('/login')
         }
-      } else if (!error.response || status >= 500) {
+      } else if (!error.config?.skipErrorToast && (!error.response || status >= 500)) {
         // No response = network/timeout; >= 500 = server error.
         toast.error('Something went wrong. Please try again.')
       }

@@ -1,40 +1,38 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { PlusCircle, Pencil, Trash2, BookOpen, Loader2 } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, BookOpen } from 'lucide-react'
 import api from '../api/axios'
 import Button from './ui/Button'
 import Card from './ui/Card'
 import { Input, Textarea } from './ui/Input'
 import Alert from './ui/Alert'
-import { LoadingState, EmptyState } from './ui/Spinner'
+import EmptyState from './ui/EmptyState'
+import ErrorState from './ui/ErrorState'
+import LectureCardSkeleton from './ui/LectureCardSkeleton'
+import useListFetch from '../hooks/useListFetch'
 import { listContainer, listItem } from '../lib/motion'
 
+// Load failures render inline (ErrorState) — skipErrorToast stops the global
+// axios interceptor from also firing a toast for them.
+const fetchMine = () => api.get('/lectures/mine', { skipErrorToast: true }).then(r => r.data)
+
 export default function MyLectures() {
-  const [lectures, setLectures]       = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState(null)
+  const { items: lectures, status, refetch } = useListFetch(fetchMine)
   const [newTitle, setNewTitle]       = useState('')
   const [newDesc, setNewDesc]         = useState('')
   const [createError, setCreateError] = useState(null)
   const [creating, setCreating]       = useState(false)
   const [editing, setEditing]         = useState(null)  // { id, title, description }
   const [editError, setEditError]     = useState(null)
+  const [saving, setSaving]           = useState(false)
+  const [deletingId, setDeletingId]   = useState(null)
 
-  const fetchLectures = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const { data } = await api.get('/lectures/mine')
-      setLectures(data)
-    } catch {
-      setError('Failed to load lectures')
-    } finally {
-      setLoading(false)
-    }
+  const focusCreateForm = useCallback(() => {
+    const el = document.getElementById('new-title')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el?.focus({ preventScroll: true })
   }, [])
-
-  useEffect(() => { fetchLectures() }, [fetchLectures])
 
   async function handleCreate(e) {
     e.preventDefault()
@@ -45,7 +43,7 @@ export default function MyLectures() {
       setNewTitle('')
       setNewDesc('')
       toast.success('Lecture created.')
-      fetchLectures()
+      refetch()
     } catch (err) {
       setCreateError(err.response?.data?.message ?? 'Failed to create lecture')
     } finally {
@@ -56,6 +54,7 @@ export default function MyLectures() {
   async function handleUpdate(e) {
     e.preventDefault()
     setEditError(null)
+    setSaving(true)
     try {
       await api.put(`/lectures/${editing.id}`, {
         title: editing.title,
@@ -63,20 +62,25 @@ export default function MyLectures() {
       })
       setEditing(null)
       toast.success('Lecture updated.')
-      fetchLectures()
+      refetch()
     } catch (err) {
       setEditError(err.response?.data?.message ?? 'Failed to update lecture')
+    } finally {
+      setSaving(false)
     }
   }
 
   async function handleDelete(id) {
     if (!window.confirm('Delete this lecture?')) return
+    setDeletingId(id)
     try {
       await api.delete(`/lectures/${id}`)
       toast.success('Lecture deleted.')
-      fetchLectures()
+      refetch()
     } catch {
       toast.error('Failed to delete lecture.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -110,100 +114,125 @@ export default function MyLectures() {
           />
           {createError && <Alert>{createError}</Alert>}
           <div className="flex justify-end">
-            <Button type="submit" disabled={creating}>
-              {creating ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              )}
+            <Button type="submit" loading={creating}>
+              {!creating && <PlusCircle className="h-4 w-4" aria-hidden="true" />}
               {creating ? 'Creating…' : 'Create lecture'}
             </Button>
           </div>
         </form>
       </Card>
 
-      {/* Lecture list */}
-      {loading && <LoadingState message="Loading your lectures…" />}
-      {!loading && error && <Alert>{error}</Alert>}
-      {!loading && !error && lectures.length === 0 && (
-        <EmptyState icon={BookOpen} message="No lectures yet — create one above." />
+      {status === 'loading' && (
+        <div className="space-y-3">
+          <LectureCardSkeleton />
+          <LectureCardSkeleton />
+          <LectureCardSkeleton />
+        </div>
       )}
 
-      <motion.div
-        className="space-y-3"
-        variants={listContainer}
-        initial="initial"
-        animate="animate"
-      >
-        <AnimatePresence>
-          {lectures.map(lecture => (
-            <motion.div key={lecture.id} variants={listItem} exit="exit" layout>
-          <Card className="p-5">
-            {editing?.id === lecture.id ? (
-              <form onSubmit={handleUpdate} className="space-y-3">
-                <Input
-                  label="Title"
-                  required
-                  value={editing.title}
-                  onChange={e => setEditing({ ...editing, title: e.target.value })}
-                />
-                <Textarea
-                  label="Description"
-                  rows={3}
-                  value={editing.description}
-                  onChange={e => setEditing({ ...editing, description: e.target.value })}
-                />
-                {editError && <Alert>{editError}</Alert>}
-                <div className="flex gap-2 justify-end">
-                  <Button type="submit">Save changes</Button>
-                  <Button type="button" variant="secondary" onClick={() => setEditing(null)}>
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-slate-100">{lecture.title}</p>
-                  {lecture.description && (
-                    <p className="mt-1 text-sm text-slate-400 line-clamp-2">
-                      {lecture.description}
-                    </p>
+      {status === 'error' && (
+        <ErrorState message="Couldn't load your lectures." onRetry={refetch} />
+      )}
+
+      {status === 'empty' && (
+        <EmptyState
+          icon={BookOpen}
+          title="No lectures yet"
+          message="Create your first lecture to get started."
+          actionLabel="Create lecture"
+          onAction={focusCreateForm}
+        />
+      )}
+
+      {status === 'success' && (
+        <motion.div
+          className="space-y-3"
+          variants={listContainer}
+          initial="initial"
+          animate="animate"
+        >
+          <AnimatePresence>
+            {lectures.map(lecture => (
+              <motion.div key={lecture.id} variants={listItem} exit="exit" layout>
+                <Card className="p-5">
+                  {editing?.id === lecture.id ? (
+                    <form onSubmit={handleUpdate} className="space-y-3">
+                      <Input
+                        label="Title"
+                        required
+                        value={editing.title}
+                        onChange={e => setEditing({ ...editing, title: e.target.value })}
+                      />
+                      <Textarea
+                        label="Description"
+                        rows={3}
+                        value={editing.description}
+                        onChange={e => setEditing({ ...editing, description: e.target.value })}
+                      />
+                      {editError && <Alert>{editError}</Alert>}
+                      <div className="flex gap-2 justify-end">
+                        <Button type="submit" loading={saving}>
+                          {saving ? 'Saving…' : 'Save changes'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={saving}
+                          onClick={() => setEditing(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-slate-900">{lecture.title}</p>
+                        {lecture.description && (
+                          <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                            {lecture.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setEditing({
+                              id: lecture.id,
+                              title: lecture.title,
+                              description: lecture.description ?? '',
+                            })
+                          }
+                          aria-label={`Edit ${lecture.title}`}
+                        >
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
+                          <span className="hidden sm:inline">Edit</span>
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          loading={deletingId === lecture.id}
+                          onClick={() => handleDelete(lecture.id)}
+                          aria-label={`Delete ${lecture.title}`}
+                        >
+                          {deletingId !== lecture.id && (
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          )}
+                          <span className="hidden sm:inline">
+                            {deletingId === lecture.id ? 'Deleting…' : 'Delete'}
+                          </span>
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      setEditing({
-                        id: lecture.id,
-                        title: lecture.title,
-                        description: lecture.description ?? '',
-                      })
-                    }
-                    aria-label={`Edit ${lecture.title}`}
-                  >
-                    <Pencil className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden sm:inline">Edit</span>
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(lecture.id)}
-                    aria-label={`Delete ${lecture.title}`}
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden sm:inline">Delete</span>
-                  </Button>
-                </div>
-              </div>
-            )}
-          </Card>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </motion.div>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
     </section>
   )
 }

@@ -63,7 +63,7 @@ export default function App() {
         {/* reducedMotion="user" auto-disables transform animations for anyone
             who has "reduce motion" on, leaving only gentle opacity fades. */}
         <MotionConfig reducedMotion="user">
-          <Toaster richColors closeButton position="top-right" theme="dark" />
+          <Toaster richColors closeButton position="top-right" />
           <AppRoutes />
         </MotionConfig>
       </AuthProvider>

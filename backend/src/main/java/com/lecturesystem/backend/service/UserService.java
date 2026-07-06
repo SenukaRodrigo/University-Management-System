@@ -3,6 +3,7 @@ package com.lecturesystem.backend.service;
 import com.lecturesystem.backend.dto.CreateUserRequest;
 import com.lecturesystem.backend.dto.UpdateUserRequest;
 import com.lecturesystem.backend.dto.UserResponse;
+import com.lecturesystem.backend.model.Role;
 import com.lecturesystem.backend.model.User;
 import com.lecturesystem.backend.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -17,18 +18,25 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailDomainService emailDomainService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       EmailDomainService emailDomainService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailDomainService = emailDomainService;
     }
 
-    public UserResponse create(CreateUserRequest req) {
+    // Role is supplied by the caller (derived from the email domain), never taken
+    // from client input. The email is normalized here so stored emails stay
+    // consistent regardless of which path created the user.
+    public UserResponse create(CreateUserRequest req, Role role) {
         User user = new User();
         user.setFullName(req.fullName());
-        user.setEmail(req.email());
+        user.setEmail(emailDomainService.normalize(req.email()));
         user.setPassword(passwordEncoder.encode(req.password()));
-        user.setRole(req.role());
+        user.setRole(role);
         return toResponse(userRepository.save(user));
     }
 
