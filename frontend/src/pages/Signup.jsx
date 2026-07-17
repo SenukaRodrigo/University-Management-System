@@ -5,28 +5,44 @@ import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { Input, PasswordInput } from '../components/ui/Input'
 import Alert from '../components/ui/Alert'
+import useField from '../hooks/useField'
+import {
+  validateFullName,
+  validateUniversityEmail,
+  validateSignupPassword,
+  STUDENT_DOMAIN,
+  LECTURER_DOMAIN,
+} from '../lib/validation'
 
 export default function Signup() {
   const { login } = useAuth()
   const navigate  = useNavigate()
-  const [form, setForm]   = useState({ fullName: '', email: '', password: '' })
+  const fullName  = useField(validateFullName)
+  const email     = useField(validateUniversityEmail)
+  const password  = useField(validateSignupPassword)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const formValid = fullName.isValid && email.isValid && password.isValid
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setLoading(true)
     try {
-      const { data } = await api.post('/auth/signup', form)
+      const { data } = await api.post('/auth/signup', {
+        fullName: fullName.value,
+        email: email.value,
+        password: password.value,
+      })
       login(data.token, data.role, data.id)
       toast.success('Account created — welcome!')
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
-      // 409 = duplicate email; other 4xx (e.g. unrecognized email domain)
-      // surface the server's own message.
+      // Server stays authoritative: 409 = duplicate email; other 4xx (e.g.
+      // unrecognized email domain) surface the server's own message.
       const message = err.response?.status === 409
         ? 'That email is already registered.'
         : err.response?.data?.message ?? 'Signup failed'
@@ -59,34 +75,41 @@ export default function Signup() {
               id="fullName"
               autoComplete="name"
               required
-              value={form.fullName}
-              onChange={e => setForm({ ...form, fullName: e.target.value })}
+              value={fullName.value}
+              onChange={fullName.onChange}
+              onBlur={fullName.onBlur}
+              error={fullName.error}
             />
-            <div className="space-y-1">
-              <Input
-                label="Email address"
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={form.email}
-                onChange={e => setForm({ ...form, email: e.target.value })}
-              />
-              <p className="text-xs text-slate-400">
-                Use your university email — students: @students.uni.edu, lecturers: @uni.edu
-              </p>
-            </div>
             <Input
+              label="Email address"
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email.value}
+              onChange={email.onChange}
+              onBlur={email.onBlur}
+              error={email.error}
+              hint={`Use your university email — students: @${STUDENT_DOMAIN}, lecturers: @${LECTURER_DOMAIN}`}
+            />
+            <PasswordInput
               label="Password"
               id="password"
-              type="password"
               autoComplete="new-password"
               required
-              value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
+              value={password.value}
+              onChange={password.onChange}
+              onBlur={password.onBlur}
+              error={password.error}
             />
             {error && <Alert>{error}</Alert>}
-            <Button type="submit" className="w-full" size="lg" loading={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={!formValid}
+              loading={loading}
+            >
               {loading ? 'Creating account…' : 'Sign up'}
             </Button>
           </form>

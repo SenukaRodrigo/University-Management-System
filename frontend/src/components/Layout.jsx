@@ -36,7 +36,7 @@ export default function Layout({ children }) {
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-navy-100 transition-colors hover:bg-navy-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-navy-100 transition-colors hover:bg-navy-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:min-h-0"
                   aria-label="Log out"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />

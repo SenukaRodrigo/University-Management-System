@@ -49,10 +49,11 @@
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
+    /* Subtle on dark surfaces — a bright sweep would glare on slate-800/900. */
     background: linear-gradient(
       90deg,
       transparent,
-      rgb(255 255 255 / 0.6),
+      rgb(255 255 255 / 0.08),
       transparent
     );
     animation: skeleton-sweep 1.5s infinite;

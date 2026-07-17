@@ -48,9 +48,13 @@ export default function MyRequests({ requests, status, onRetry, onBrowse }) {
           <AnimatePresence>
             {requests.map(req => (
               <motion.div key={req.id} variants={listItem} exit="exit" layout>
-                <Card className="flex items-center justify-between p-4">
-                  <p className="text-sm font-semibold text-slate-900">{req.lectureTitle}</p>
-                  <Badge status={req.status} />
+                <Card className="flex items-center justify-between gap-3 p-4">
+                  <p className="min-w-0 break-words text-sm font-semibold text-slate-100">
+                    {req.lectureTitle}
+                  </p>
+                  <div className="shrink-0">
+                    <Badge status={req.status} />
+                  </div>
                 </Card>
               </motion.div>
             ))}

@@ -5,22 +5,30 @@ import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { Input, PasswordInput } from '../components/ui/Input'
 import Alert from '../components/ui/Alert'
+import useField from '../hooks/useField'
+import { validateEmailFormat, validateLoginPassword } from '../lib/validation'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate  = useNavigate()
-  const [form, setForm]   = useState({ email: '', password: '' })
+  const email     = useField(validateEmailFormat)
+  const password  = useField(validateLoginPassword)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const formValid = email.isValid && password.isValid
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const loginPromise = api.post('/auth/login', form)
+    const loginPromise = api.post('/auth/login', {
+      email: email.value,
+      password: password.value,
+    })
     toast.promise(loginPromise, {
       loading: 'Logging in…',
       success: 'Welcome back!',
@@ -61,20 +69,29 @@ export default function Login() {
               type="email"
               autoComplete="email"
               required
-              value={form.email}
-              onChange={e => setForm({ ...form, email: e.target.value })}
+              value={email.value}
+              onChange={email.onChange}
+              onBlur={email.onBlur}
+              error={email.error}
             />
-            <Input
+            <PasswordInput
               label="Password"
               id="password"
-              type="password"
               autoComplete="current-password"
               required
-              value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
+              value={password.value}
+              onChange={password.onChange}
+              onBlur={password.onBlur}
+              error={password.error}
             />
             {error && <Alert>{error}</Alert>}
-            <Button type="submit" className="w-full" size="lg" loading={loading}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              disabled={!formValid}
+              loading={loading}
+            >
               {loading ? 'Logging in…' : 'Log in'}
             </Button>
           </form>

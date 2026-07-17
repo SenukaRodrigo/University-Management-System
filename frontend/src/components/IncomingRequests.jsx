@@ -75,12 +75,12 @@ export default function IncomingRequests() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       {/* Info */}
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="break-words text-sm font-semibold text-slate-100">
                           {req.studentName}
                         </p>
-                        <p className="mt-0.5 text-sm text-slate-500">
+                        <p className="mt-0.5 break-words text-sm text-slate-400">
                           wants to join{' '}
-                          <span className="font-medium text-slate-700">{req.lectureTitle}</span>
+                          <span className="font-medium text-slate-300">{req.lectureTitle}</span>
                         </p>
                       </div>
 

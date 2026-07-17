@@ -159,12 +159,14 @@ export default function MyLectures() {
                     <form onSubmit={handleUpdate} className="space-y-3">
                       <Input
                         label="Title"
+                        id="edit-title"
                         required
                         value={editing.title}
                         onChange={e => setEditing({ ...editing, title: e.target.value })}
                       />
                       <Textarea
                         label="Description"
+                        id="edit-desc"
                         rows={3}
                         value={editing.description}
                         onChange={e => setEditing({ ...editing, description: e.target.value })}
@@ -187,9 +189,9 @@ export default function MyLectures() {
                   ) : (
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900">{lecture.title}</p>
+                        <p className="break-words font-semibold text-slate-100">{lecture.title}</p>
                         {lecture.description && (
-                          <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                          <p className="mt-1 text-sm text-slate-400 line-clamp-2">
                             {lecture.description}
                           </p>
                         )}

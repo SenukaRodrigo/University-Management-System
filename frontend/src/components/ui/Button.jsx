@@ -14,10 +14,12 @@ const variants = {
   ghost: 'text-slate-300 hover:bg-slate-800 focus-visible:ring-slate-500',
 }
 
+// min-h-11 (44px) below the sm breakpoint keeps touch targets comfortable on
+// phones; from sm up the compact desktop padding takes over.
 const sizes = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-5 py-2.5 text-sm',
+  sm: 'min-h-11 sm:min-h-0 px-3 py-1.5 text-xs',
+  md: 'min-h-11 sm:min-h-0 px-4 py-2 text-sm',
+  lg: 'min-h-11 px-5 py-2.5 text-sm',
 }
 
 // `loading` disables the button and prepends an inline spinner, so every

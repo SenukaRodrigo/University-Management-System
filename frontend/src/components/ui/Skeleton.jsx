@@ -10,7 +10,7 @@ export default function Skeleton({ width, height, className = '' }) {
     <div
       aria-hidden="true"
       style={{ width, height }}
-      className={`rounded-md bg-slate-200 ${reduceMotion ? '' : 'skeleton-shimmer'} ${className}`}
+      className={`rounded-md bg-slate-700/60 ${reduceMotion ? '' : 'skeleton-shimmer'} ${className}`}
     />
   )
 }

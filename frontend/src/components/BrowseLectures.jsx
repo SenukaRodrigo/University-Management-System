@@ -87,13 +87,13 @@ export default function BrowseLectures({ myRequests, onRequestMade }) {
                 transition={{ duration: 0.15 }}
               >
                 <Card className="flex h-full flex-col p-5">
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{lecture.title}</p>
-                    <p className="mt-1 text-xs font-medium text-navy-600">
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-semibold text-slate-100">{lecture.title}</p>
+                    <p className="mt-1 text-xs font-medium text-navy-300">
                       {lecture.lecturerName}
                     </p>
                     {lecture.description && (
-                      <p className="mt-2 text-sm text-slate-500 line-clamp-3">
+                      <p className="mt-2 text-sm text-slate-400 line-clamp-3">
                         {lecture.description}
                       </p>
                     )}
