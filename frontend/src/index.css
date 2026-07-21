@@ -35,3 +35,32 @@
     @apply outline-none ring-2 ring-navy-400 ring-offset-2;
   }
 }
+
+@layer utilities {
+  /* Shimmer sweep for <Skeleton />. The component only applies this class when
+     the user has NOT asked for reduced motion (via useReducedMotion), so there's
+     no need for a media query here. */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    /* Subtle on dark surfaces — a bright sweep would glare on slate-800/900. */
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.08),
+      transparent
+    );
+    animation: skeleton-sweep 1.5s infinite;
+  }
+  @keyframes skeleton-sweep {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
