@@ -33,9 +33,9 @@ public class EmailDomainService {
      * Derives the account role from the email's domain. Pass a value that has
      * already been run through {@link #normalize}.
      *
-     * TODO: email ownership is not yet verified — a user could enter a
-     * lecturer-domain email they don't own. Email verification (planned) will
-     * close this gap.
+     * Domain ownership itself is verified separately: the account is created
+     * disabled and can't log in until the signup code emailed to this address
+     * is confirmed via /api/auth/verify (see EmailVerificationService).
      */
     public Role resolveRole(String normalizedEmail) {
         int at = normalizedEmail.lastIndexOf('@');

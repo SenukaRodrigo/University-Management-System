@@ -42,3 +42,8 @@ export function validateLoginPassword(value) {
   if (!value) return 'Password is required.'
   return null
 }
+
+export function validateVerificationCode(value) {
+  if (!value || !/^\d{6}$/.test(value.trim())) return 'Enter the 6-digit code.'
+  return null
+}

@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import VerifyEmail from './pages/VerifyEmail'
 import LecturerDashboard from './pages/LecturerDashboard'
 import StudentDashboard from './pages/StudentDashboard'
 import { pageVariants, pageTransition } from './lib/motion'
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Page><Login /></Page>} />
         <Route path="/signup" element={<Page><Signup /></Page>} />
+        <Route path="/verify-email" element={<Page><VerifyEmail /></Page>} />
         <Route path="/lecturer" element={
           <ProtectedRoute requiredRole="LECTURER">
             <Page><LecturerDashboard /></Page>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
@@ -13,9 +13,13 @@ import { validateEmailFormat, validateLoginPassword } from '../lib/validation'
 export default function Login() {
   const { login } = useAuth()
   const navigate  = useNavigate()
-  const email     = useField(validateEmailFormat)
+  const location  = useLocation()
+  // VerifyEmail hands the address back after a successful verification so the
+  // user doesn't have to retype it.
+  const email     = useField(validateEmailFormat, location.state?.verifiedEmail ?? '')
   const password  = useField(validateLoginPassword)
   const [error, setError] = useState(null)
+  const [unverified, setUnverified] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const formValid = email.isValid && password.isValid
@@ -23,6 +27,7 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
+    setUnverified(false)
     setLoading(true)
 
     const loginPromise = api.post('/auth/login', {
@@ -32,7 +37,12 @@ export default function Login() {
     toast.promise(loginPromise, {
       loading: 'Logging in…',
       success: 'Welcome back!',
-      error: 'Invalid email or password.',
+      // 403 (unverified) gets its own message; everything else is the
+      // generic "wrong credentials" — we don't want to hint at *why* a login
+      // failed beyond that one deliberate exception.
+      error: err => err?.response?.status === 403
+        ? (err.response?.data?.message ?? 'Please verify your email before logging in.')
+        : 'Invalid email or password.',
     })
 
     try {
@@ -41,6 +51,7 @@ export default function Login() {
       navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
     } catch (err) {
       setError(err.response?.data?.message ?? 'Login failed')
+      setUnverified(err.response?.status === 403)
     } finally {
       setLoading(false)
     }
@@ -84,7 +95,23 @@ export default function Login() {
               onBlur={password.onBlur}
               error={password.error}
             />
-            {error && <Alert>{error}</Alert>}
+            {error && (
+              <Alert>
+                {error}
+                {unverified && (
+                  <>
+                    {' '}
+                    <Link
+                      to="/verify-email"
+                      state={{ email: email.value }}
+                      className="font-medium underline"
+                    >
+                      Verify your email
+                    </Link>
+                  </>
+                )}
+              </Alert>
+            )}
             <Button
               type="submit"
               className="w-full"

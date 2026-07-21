@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { GraduationCap } from 'lucide-react'
 import api from '../api/axios'
-import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
 import { Input, PasswordInput } from '../components/ui/Input'
 import Alert from '../components/ui/Alert'
@@ -17,7 +16,6 @@ import {
 } from '../lib/validation'
 
 export default function Signup() {
-  const { login } = useAuth()
   const navigate  = useNavigate()
   const fullName  = useField(validateFullName)
   const email     = useField(validateUniversityEmail)
@@ -37,9 +35,10 @@ export default function Signup() {
         email: email.value,
         password: password.value,
       })
-      login(data.token, data.role, data.id)
-      toast.success('Account created — welcome!')
-      navigate(data.role === 'LECTURER' ? '/lecturer' : '/student')
+      // No token anymore — the account is disabled until the emailed code is
+      // confirmed. Hand off to the verify page instead of logging in.
+      toast.success(data.message ?? 'Account created. Check your email for a verification code.')
+      navigate('/verify-email', { state: { email: email.value } })
     } catch (err) {
       // Server stays authoritative: 409 = duplicate email; other 4xx (e.g.
       // unrecognized email domain) surface the server's own message.

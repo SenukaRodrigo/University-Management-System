@@ -29,6 +29,11 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    // False until the signup email-verification code is confirmed (see
+    // EmailVerificationService). Login is rejected while this is false.
+    @Column(nullable = false)
+    private boolean enabled = false;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }

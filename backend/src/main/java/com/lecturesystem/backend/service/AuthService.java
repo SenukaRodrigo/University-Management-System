@@ -3,7 +3,9 @@ package com.lecturesystem.backend.service;
 import com.lecturesystem.backend.dto.AuthResponse;
 import com.lecturesystem.backend.dto.CreateUserRequest;
 import com.lecturesystem.backend.dto.LoginRequest;
+import com.lecturesystem.backend.dto.MessageResponse;
 import com.lecturesystem.backend.exception.EmailAlreadyExistsException;
+import com.lecturesystem.backend.exception.UnverifiedEmailException;
 import com.lecturesystem.backend.model.Role;
 import com.lecturesystem.backend.model.User;
 import com.lecturesystem.backend.repository.UserRepository;
@@ -21,20 +23,23 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserService userService;
     private final EmailDomainService emailDomainService;
+    private final EmailVerificationService emailVerificationService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        UserService userService,
-                       EmailDomainService emailDomainService) {
+                       EmailDomainService emailDomainService,
+                       EmailVerificationService emailVerificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.userService = userService;
         this.emailDomainService = emailDomainService;
+        this.emailVerificationService = emailVerificationService;
     }
 
-    public AuthResponse signup(CreateUserRequest req) {
+    public MessageResponse signup(CreateUserRequest req) {
         // Normalize first so the duplicate check and the stored email are
         // case-insensitive and whitespace-tolerant.
         String email = emailDomainService.normalize(req.email());
@@ -44,13 +49,19 @@ public class AuthService {
         }
 
         // The role is derived from the email domain — the client never chooses it.
-        // (See EmailDomainService for the domain->role mapping and the ownership TODO.)
         Role role = emailDomainService.resolveRole(email);
 
+        // Created disabled: the account can't log in until the emailed code is
+        // confirmed via /api/auth/verify. This is what closes the email-ownership
+        // gap that used to be flagged as a TODO in EmailDomainService — anyone
+        // can *type* a lecturer-domain address, but only the real owner can read
+        // the code that lands in that inbox.
         userService.create(req, role);
         User user = userRepository.findByEmail(email).orElseThrow();
-        String token = jwtService.generateToken(user);
-        return new AuthResponse(token, user.getRole(), user.getId());
+
+        emailVerificationService.issueCode(user);
+
+        return new MessageResponse("Account created. Check your email for a verification code.");
     }
 
     public AuthResponse login(LoginRequest req) {
@@ -61,6 +72,12 @@ public class AuthService {
                 .filter(u -> passwordEncoder.matches(req.password(), u.getPassword()))
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+
+        // Distinct from the 401 above: we know exactly who this is (the
+        // password matched), they just haven't confirmed their email yet.
+        if (!user.isEnabled()) {
+            throw new UnverifiedEmailException();
+        }
 
         String token = jwtService.generateToken(user);
         return new AuthResponse(token, user.getRole(), user.getId());

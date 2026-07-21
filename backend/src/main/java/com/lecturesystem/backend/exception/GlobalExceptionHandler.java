@@ -32,6 +32,25 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler({
+            InvalidVerificationCodeException.class,
+            VerificationCodeExpiredException.class,
+            AlreadyVerifiedException.class,
+    })
+    public ResponseEntity<Map<String, String>> handleVerificationErrors(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnverifiedEmailException.class)
+    public ResponseEntity<Map<String, String>> handleUnverifiedEmail(UnverifiedEmailException ex) {
+        // 403, not 401: we know exactly who this is (password matched) — they
+        // just aren't allowed in yet. See JwtAuthenticationFilter's 401 comment
+        // in SecurityConfig for the same distinction.
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         // getMostSpecificCause() unwraps to the JDBC driver exception whose message
